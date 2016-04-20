@@ -1,0 +1,8 @@
+C:\Users\Aliatec-HP\Desktop\PEX_FTP\PEX_FTP\bin\Debug\PEX_FTP.exe.config
+C:\Users\Aliatec-HP\Desktop\PEX_FTP\PEX_FTP\bin\Debug\PEX_FTP.exe
+C:\Users\Aliatec-HP\Desktop\PEX_FTP\PEX_FTP\bin\Debug\PEX_FTP.pdb
+C:\Users\Aliatec-HP\Desktop\PEX_FTP\PEX_FTP\obj\Debug\PEX_FTP.csprojResolveAssemblyReference.cache
+C:\Users\Aliatec-HP\Desktop\PEX_FTP\PEX_FTP\obj\Debug\PEX_FTP.exe
+C:\Users\Aliatec-HP\Desktop\PEX_FTP\PEX_FTP\obj\Debug\PEX_FTP.pdb
+C:\Users\Aliatec-HP\Desktop\PEX_FTP\PEX_FTP\bin\Debug\Renci.SshNet.dll
+C:\Users\Aliatec-HP\Desktop\PEX_FTP\PEX_FTP\bin\Debug\Renci.SshNet.xml
