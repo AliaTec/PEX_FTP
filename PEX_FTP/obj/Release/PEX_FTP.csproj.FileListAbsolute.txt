@@ -1,0 +1,8 @@
+C:\Users\Aliatec-HP\Documents\GitHub\PEX_FTP\PEX_FTP\bin\Release\PEX_FTP.exe.config
+C:\Users\Aliatec-HP\Documents\GitHub\PEX_FTP\PEX_FTP\bin\Release\PEX_FTP.exe
+C:\Users\Aliatec-HP\Documents\GitHub\PEX_FTP\PEX_FTP\bin\Release\PEX_FTP.pdb
+C:\Users\Aliatec-HP\Documents\GitHub\PEX_FTP\PEX_FTP\bin\Release\Renci.SshNet.dll
+C:\Users\Aliatec-HP\Documents\GitHub\PEX_FTP\PEX_FTP\bin\Release\Renci.SshNet.xml
+C:\Users\Aliatec-HP\Documents\GitHub\PEX_FTP\PEX_FTP\obj\Release\PEX_FTP.csprojResolveAssemblyReference.cache
+C:\Users\Aliatec-HP\Documents\GitHub\PEX_FTP\PEX_FTP\obj\Release\PEX_FTP.exe
+C:\Users\Aliatec-HP\Documents\GitHub\PEX_FTP\PEX_FTP\obj\Release\PEX_FTP.pdb

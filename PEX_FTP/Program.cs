@@ -18,7 +18,10 @@ namespace PEX_FTP
     {
         static void Main(string[] args)
         {
-            //WAITINGEVENTS_Z05_MX012_JJ_D20160413_O002
+            string Op = args[0]; 
+            string N = args[1];
+            string Anio = args[2];
+            string Periodo = args[3];
 
             //Se obtienen valores de configuración
             string ConString = ConfigurationManager.ConnectionStrings["SQLConnection"].ConnectionString;
@@ -27,46 +30,84 @@ namespace PEX_FTP
             string FTPPass = ConfigurationManager.AppSettings["FTPPass"];
             int FTPPort = Int32.Parse(ConfigurationManager.AppSettings["FTPPort"]);
             string FTPDirectory = ConfigurationManager.AppSettings["FTPDirectory"];
-
-            //Se genera nombre de archivo
-            string Path = "C:/Users/Aliatec-HP/Desktop/";
-            string Number = "";
-            string Date = DateTime.Now.ToString("yyyymmdd");
-
+            string Path = ConfigurationManager.AppSettings["PathFile"];
             
-            if (args.Length>0)
-            {
-                Number = args[0];
-                if (Number.Length.Equals(1))
-                {
-                    Number = "00" + Number;
-                }
-                if (Number.Length.Equals(2))
-                {
-                    Number = "0" + Number;
-                }
-            }
-            else
-            {
-                Number = "001";
-            }         
-            
-                  
-            string FileName = Path+"WAITINGEVENTS_Z05_MX012_JJ_D"+ Date + "_O"+Number+".csv";
-
+            //Para generar el nombre del archivo            
+            string FileName;
+            FileName = Name(Path,Op,N,Anio,Periodo);
+            //
 
             Console.WriteLine("FTPServer: " + FTPHost);
             Console.WriteLine("FTPUser: " + FTPUser);
             Console.WriteLine("FTPPass: " + FTPPass);
             Console.WriteLine("FTPDirectory: " + FTPDirectory);
             Console.WriteLine("Source: " + FileName);
-                        
-            ConfirmationFile(ConString,FileName);
-            UploadFile(FTPHost, FTPUser, FTPPass, FTPPort, FTPDirectory,FileName);
 
+            switch (Op)
+            {
+                case "1":
+                    ConfirmationFile(ConString, FileName);
+                    break;
+                case "2":
+                    GlobalResultsFile(ConString, FileName);
+                    break;
+                case "3":
+                    FinanceFile(ConString, FileName);
+                    break;
+                case "4":
+                    BankFile(ConString, FileName);
+                    break;
+            }
+            
+            
+            //UploadFile(FTPHost, FTPUser, FTPPass, FTPPort, FTPDirectory, FileName);
             Console.ReadLine();
         }
 
+        public static string Name (string Path,string Op,string N,string Anio,string Periodo)
+        {
+            string Date = DateTime.Now.ToString("yyyymmdd");
+            string Number = "";
+            string FileName="";
+
+            if (Op=="1") //ConfirmationFile
+            {
+                if (N.Length > 0)
+                {
+                    Number =N;
+                    if (Number.Length.Equals(1))
+                    {
+                        Number = "00" + Number;
+                    }
+                    if (Number.Length.Equals(2))
+                    {
+                        Number = "0" + Number;
+                    }
+                }
+                else
+                {
+                    Number = "001";
+                }
+                FileName = Path + "WAITINGEVENTS_Z05_MX012_JJ_D" + Date + "_O" + Number + ".csv";
+            }
+
+            if (Op=="2") //GlobalResultsFile
+            {
+                FileName = Path + "GLREP_Z05_MX012_LI_Y" + Anio + "_P" + Periodo + ".csv";
+            }
+
+            if (Op == "3") //FinanceFile
+            {
+                FileName = Path + "FINANCE_Z05_MX012_LI_Y" + Anio + "_P" + Periodo + ".csv";
+            }
+
+            if (Op == "4") //BankFile
+            {
+                FileName = Path + "GLREP_Z05_MX012_LI_Y" + Anio + "_P" + Periodo + ".txt";
+            }
+
+            return FileName;
+        }
 
         public static void ConfirmationFile(string ConString,string FileName)
         {
@@ -115,33 +156,180 @@ namespace PEX_FTP
 
         }
 
+        public static void GlobalResultsFile(string ConString, string FileName)
+        {
+            var CsvFile = FileName;
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(ConString))
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_ConfirmationLog_PEX";
+                    cmd.Connection = conn;
+                    conn.Open();
+
+                    System.Data.DataSet ds = new System.Data.DataSet();
+                    System.Data.DataTable dt = new System.Data.DataTable();
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    da.Fill(ds);
+                    int c = ds.Tables[0].Rows.Count;
+                    Console.WriteLine(c);
+
+
+                    File.WriteAllText(CsvFile, ds.Tables[0].Columns[0].ToString() + "," + ds.Tables[0].Columns[1].ToString() + ","
+                                              + ds.Tables[0].Columns[2].ToString() + "," + ds.Tables[0].Columns[3].ToString() + ","
+                                              + ds.Tables[0].Columns[4].ToString() + "," + ds.Tables[0].Columns[5].ToString() + ","
+                                              + ds.Tables[0].Columns[6].ToString() + "," + ds.Tables[0].Columns[7].ToString() + ","
+                                              + Environment.NewLine);
+                    for (int i = 0; i < c; i++)
+                    {
+                        File.AppendAllText(CsvFile, ds.Tables[0].Rows[i][0].ToString() + "," + ds.Tables[0].Rows[i][1].ToString() + ","
+                                                 + ds.Tables[0].Rows[i][2].ToString() + "," + ds.Tables[0].Rows[i][3].ToString() + ","
+                                                 + ds.Tables[0].Rows[i][4].ToString() + "," + ds.Tables[0].Rows[i][5].ToString() + ","
+                                                 + ds.Tables[0].Rows[i][6].ToString() + "," + ds.Tables[0].Rows[i][7].ToString() + ","
+                                                 + Environment.NewLine);
+                    }
+
+                    conn.Close();
+                    Console.WriteLine("Archivo Generado.");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+        }
+
+        public static void FinanceFile(string ConString, string FileName)
+        {
+            var CsvFile = FileName;
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(ConString))
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_ConfirmationLog_PEX";
+                    cmd.Connection = conn;
+                    conn.Open();
+
+                    System.Data.DataSet ds = new System.Data.DataSet();
+                    System.Data.DataTable dt = new System.Data.DataTable();
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    da.Fill(ds);
+                    int c = ds.Tables[0].Rows.Count;
+                    Console.WriteLine(c);
+
+
+                    File.WriteAllText(CsvFile, ds.Tables[0].Columns[0].ToString() + "," + ds.Tables[0].Columns[1].ToString() + ","
+                                              + ds.Tables[0].Columns[2].ToString() + "," + ds.Tables[0].Columns[3].ToString() + ","
+                                              + ds.Tables[0].Columns[4].ToString() + "," + ds.Tables[0].Columns[5].ToString() + ","
+                                              + ds.Tables[0].Columns[6].ToString() + "," + ds.Tables[0].Columns[7].ToString() + ","
+                                              + Environment.NewLine);
+                    for (int i = 0; i < c; i++)
+                    {
+                        File.AppendAllText(CsvFile, ds.Tables[0].Rows[i][0].ToString() + "," + ds.Tables[0].Rows[i][1].ToString() + ","
+                                                 + ds.Tables[0].Rows[i][2].ToString() + "," + ds.Tables[0].Rows[i][3].ToString() + ","
+                                                 + ds.Tables[0].Rows[i][4].ToString() + "," + ds.Tables[0].Rows[i][5].ToString() + ","
+                                                 + ds.Tables[0].Rows[i][6].ToString() + "," + ds.Tables[0].Rows[i][7].ToString() + ","
+                                                 + Environment.NewLine);
+                    }
+
+                    conn.Close();
+                    Console.WriteLine("Archivo Generado.");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+        }
+
+        public static void BankFile(string ConString, string FileName)
+        {
+            var CsvFile = FileName;
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(ConString))
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_ConfirmationLog_PEX";
+                    cmd.Connection = conn;
+                    conn.Open();
+
+                    System.Data.DataSet ds = new System.Data.DataSet();
+                    System.Data.DataTable dt = new System.Data.DataTable();
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    da.Fill(ds);
+                    int c = ds.Tables[0].Rows.Count;
+                    Console.WriteLine(c);
+
+
+                    File.WriteAllText(CsvFile, ds.Tables[0].Columns[0].ToString() + "," + ds.Tables[0].Columns[1].ToString() + ","
+                                              + ds.Tables[0].Columns[2].ToString() + "," + ds.Tables[0].Columns[3].ToString() + ","
+                                              + ds.Tables[0].Columns[4].ToString() + "," + ds.Tables[0].Columns[5].ToString() + ","
+                                              + ds.Tables[0].Columns[6].ToString() + "," + ds.Tables[0].Columns[7].ToString() + ","
+                                              + Environment.NewLine);
+                    for (int i = 0; i < c; i++)
+                    {
+                        File.AppendAllText(CsvFile, ds.Tables[0].Rows[i][0].ToString() + "," + ds.Tables[0].Rows[i][1].ToString() + ","
+                                                 + ds.Tables[0].Rows[i][2].ToString() + "," + ds.Tables[0].Rows[i][3].ToString() + ","
+                                                 + ds.Tables[0].Rows[i][4].ToString() + "," + ds.Tables[0].Rows[i][5].ToString() + ","
+                                                 + ds.Tables[0].Rows[i][6].ToString() + "," + ds.Tables[0].Rows[i][7].ToString() + ","
+                                                 + Environment.NewLine);
+                    }
+
+                    conn.Close();
+                    Console.WriteLine("Archivo Generado.");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+        }
 
         public static void UploadFile(string host,string user,string pass,int port,string directory,string FileName)
         {
             string uploadfile = FileName;
-            Console.WriteLine("Creating client and connecting");
-            using (var client = new SftpClient(host, port, user, pass))
+            try
             {
-                client.Connect();
-                Console.WriteLine("Connected to {0}", host);
-
-                client.ChangeDirectory(directory);
-                Console.WriteLine("Changed directory to {0}", directory);
-
-                //var listDirectory = client.ListDirectory(directory);
-                //Console.WriteLine("Listing directory:");
-                //foreach (var fi in listDirectory)
-                //{
-                //    Console.WriteLine(" - " + fi.Name);
-                //}
-                
-                using (var fileStream = new FileStream(uploadfile, FileMode.Open))
+                Console.WriteLine("Creating client and connecting");
+                using (var client = new SftpClient(host, port, user, pass))
                 {
-                    Console.WriteLine("Uploading {0} ({1:N0} bytes)", uploadfile, fileStream.Length);
-                    client.BufferSize = 4 * 1024; // bypass Payload error large files
-                    client.UploadFile(fileStream, Path.GetFileName(uploadfile));
-                    Console.WriteLine(Path.GetFileName(uploadfile));
+                    client.Connect();
+                    Console.WriteLine("Connected to {0}", host);
+
+                    client.ChangeDirectory(directory);
+                    Console.WriteLine("Changed directory to {0}", directory);
+
+                    //var listDirectory = client.ListDirectory(directory);
+                    //Console.WriteLine("Listing directory:");
+                    //foreach (var fi in listDirectory)
+                    //{
+                    //    Console.WriteLine(" - " + fi.Name);
+                    //}
+
+                    using (var fileStream = new FileStream(uploadfile, FileMode.Open))
+                    {
+                        Console.WriteLine("Uploading {0} ({1:N0} bytes)", uploadfile, fileStream.Length);
+                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                        client.UploadFile(fileStream, Path.GetFileName(uploadfile));
+                        Console.WriteLine(Path.GetFileName(uploadfile));
+                    }
                 }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
 
