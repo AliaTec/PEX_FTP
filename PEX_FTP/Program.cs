@@ -9,6 +9,7 @@ using System.Net;
 using Renci.SshNet;
 using Renci.SshNet.Common;
 using Renci.SshNet.Sftp;
+using System.Data;
 using System.Data.Sql;
 using System.Data.SqlClient;
 
@@ -40,7 +41,7 @@ namespace PEX_FTP
             Console.WriteLine("FTPServer: " + FTPHost);
             Console.WriteLine("FTPUser: " + FTPUser);
             Console.WriteLine("FTPPass: " + FTPPass);
-            Console.WriteLine("FTPDirectory: " + FTPDirectory);
+            Console.WriteLine("FTPDirectory*: " + FTPDirectory);
             Console.WriteLine("Source: " + FileName);
 
             switch (Op)
@@ -57,53 +58,41 @@ namespace PEX_FTP
                 case "4":
                     BankFile(ConString, FileName);
                     break;
+                case "5":
+                    FileName = "C:/Recibos/Zoetis/" + N;
+                    break;
             }
-            
-            
-            //UploadFile(FTPHost, FTPUser, FTPPass, FTPPort, FTPDirectory, FileName);
+
+            UploadFile(FTPHost, FTPUser, FTPPass, FTPPort, FTPDirectory, FileName);
             Console.ReadLine();
         }
 
         public static string Name (string Path,string Op,string N,string Anio,string Periodo)
         {
             string Date = DateTime.Now.ToString("yyyymmdd");
-            string Number = "";
             string FileName="";
 
             if (Op=="1") //ConfirmationFile
             {
                 if (N.Length > 0)
                 {
-                    Number =N;
-                    if (Number.Length.Equals(1))
-                    {
-                        Number = "00" + Number;
-                    }
-                    if (Number.Length.Equals(2))
-                    {
-                        Number = "0" + Number;
-                    }
+                    FileName = Path + N;
                 }
-                else
-                {
-                    Number = "001";
-                }
-                FileName = Path + "WAITINGEVENTS_Z05_MX012_JJ_D" + Date + "_O" + Number + ".csv";
             }
 
             if (Op=="2") //GlobalResultsFile
             {
-                FileName = Path + "GLREP_Z05_MX012_LI_Y" + Anio + "_P" + Periodo + ".csv";
+                FileName = Path + "GLREP_Z05_MX012_JJ_Y" + Anio + "_P" + Periodo + "_R01.csv";
             }
 
             if (Op == "3") //FinanceFile
             {
-                FileName = Path + "FINANCE_Z05_MX012_LI_Y" + Anio + "_P" + Periodo + ".csv";
+                FileName = Path + "FINANCE_Z05_MX012_JJ_Y" + Anio + "_P" + Periodo + "_R01.csv";
             }
 
             if (Op == "4") //BankFile
             {
-                FileName = Path + "GLREP_Z05_MX012_LI_Y" + Anio + "_P" + Periodo + ".txt";
+                FileName = Path + "BANK_Z05_MX012_JJ_Y" + Anio + "_P" + Periodo + "_R01.txt";
             }
 
             return FileName;
@@ -119,6 +108,7 @@ namespace PEX_FTP
                     SqlCommand cmd = new SqlCommand();
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
                     cmd.CommandText = "sp_ConfirmationLog_PEX";
+                    cmd.Parameters.Add("@Enviar", SqlDbType.Int).Value = 1;
                     cmd.Connection = conn;
                     conn.Open();
 
@@ -133,14 +123,14 @@ namespace PEX_FTP
                     File.WriteAllText(CsvFile, ds.Tables[0].Columns[0].ToString()+","+ ds.Tables[0].Columns[1].ToString()+"," 
                                               + ds.Tables[0].Columns[2].ToString() + ","+ds.Tables[0].Columns[3].ToString() + ","
                                               + ds.Tables[0].Columns[4].ToString() + "," + ds.Tables[0].Columns[5].ToString() + ","
-                                              + ds.Tables[0].Columns[6].ToString() + "," + ds.Tables[0].Columns[7].ToString() + ","
+                                              + ds.Tables[0].Columns[6].ToString() + "," + ds.Tables[0].Columns[7].ToString() //+ ","
                                               + Environment.NewLine);
                     for (int i = 0; i < c; i++)
                     {
                         File.AppendAllText(CsvFile, ds.Tables[0].Rows[i][0].ToString()+","+ ds.Tables[0].Rows[i][1].ToString() +","
                                                  + ds.Tables[0].Rows[i][2].ToString() + "," + ds.Tables[0].Rows[i][3].ToString() + ","
                                                  + ds.Tables[0].Rows[i][4].ToString() + "," + ds.Tables[0].Rows[i][5].ToString() + ","
-                                                 + ds.Tables[0].Rows[i][6].ToString() + "," + ds.Tables[0].Rows[i][7].ToString() + ","
+                                                 + ds.Tables[0].Rows[i][6].ToString() + "," + ds.Tables[0].Rows[i][7].ToString() //+ ","
                                                  + Environment.NewLine);
                     }
                     
@@ -165,7 +155,8 @@ namespace PEX_FTP
                 {
                     SqlCommand cmd = new SqlCommand();
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_ConfirmationLog_PEX";
+                    cmd.CommandText = "sp_Reporting_Global_PEX ";
+                    cmd.Parameters.Add("@Enviar", SqlDbType.Int).Value = 1;
                     cmd.Connection = conn;
                     conn.Open();
 
@@ -181,14 +172,14 @@ namespace PEX_FTP
                                               + ds.Tables[0].Columns[2].ToString() + "," + ds.Tables[0].Columns[3].ToString() + ","
                                               + ds.Tables[0].Columns[4].ToString() + "," + ds.Tables[0].Columns[5].ToString() + ","
                                               + ds.Tables[0].Columns[6].ToString() + "," + ds.Tables[0].Columns[7].ToString() + ","
-                                              + Environment.NewLine);
+                                              + ds.Tables[0].Columns[8].ToString() + Environment.NewLine);
                     for (int i = 0; i < c; i++)
                     {
                         File.AppendAllText(CsvFile, ds.Tables[0].Rows[i][0].ToString() + "," + ds.Tables[0].Rows[i][1].ToString() + ","
                                                  + ds.Tables[0].Rows[i][2].ToString() + "," + ds.Tables[0].Rows[i][3].ToString() + ","
                                                  + ds.Tables[0].Rows[i][4].ToString() + "," + ds.Tables[0].Rows[i][5].ToString() + ","
                                                  + ds.Tables[0].Rows[i][6].ToString() + "," + ds.Tables[0].Rows[i][7].ToString() + ","
-                                                 + Environment.NewLine);
+                                                 + ds.Tables[0].Rows[i][8].ToString() + Environment.NewLine);
                     }
 
                     conn.Close();
@@ -212,7 +203,8 @@ namespace PEX_FTP
                 {
                     SqlCommand cmd = new SqlCommand();
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_ConfirmationLog_PEX";
+                    cmd.CommandText = "sp_Finance_File_PEX";
+                    cmd.Parameters.Add("@Enviar", SqlDbType.Int).Value = 1;
                     cmd.Connection = conn;
                     conn.Open();
 
@@ -224,17 +216,27 @@ namespace PEX_FTP
                     Console.WriteLine(c);
 
 
+                    //File.WriteAllText(CsvFile, ds.Tables[0].Columns[0].ToString() + "," + ds.Tables[0].Columns[1].ToString() + ","
+                    //                          + ds.Tables[0].Columns[2].ToString() + "," + ds.Tables[0].Columns[3].ToString() + ","
+                    //                          + ds.Tables[0].Columns[4].ToString() + "," + ds.Tables[0].Columns[5].ToString() + ","
+                    //                          + ds.Tables[0].Columns[6].ToString() + "," + ds.Tables[0].Columns[7].ToString() + ","
+                    //                          + ds.Tables[0].Columns[8].ToString() + "," + ds.Tables[0].Columns[9].ToString() + ","
+                    //                          + ds.Tables[0].Columns[10].ToString() + "," + ds.Tables[0].Columns[11].ToString() 
+                    //                          + Environment.NewLine);
+
                     File.WriteAllText(CsvFile, ds.Tables[0].Columns[0].ToString() + "," + ds.Tables[0].Columns[1].ToString() + ","
                                               + ds.Tables[0].Columns[2].ToString() + "," + ds.Tables[0].Columns[3].ToString() + ","
                                               + ds.Tables[0].Columns[4].ToString() + "," + ds.Tables[0].Columns[5].ToString() + ","
-                                              + ds.Tables[0].Columns[6].ToString() + "," + ds.Tables[0].Columns[7].ToString() + ","
-                                              + Environment.NewLine);
+                                              + ds.Tables[0].Columns[6].ToString() + Environment.NewLine);
+
                     for (int i = 0; i < c; i++)
                     {
                         File.AppendAllText(CsvFile, ds.Tables[0].Rows[i][0].ToString() + "," + ds.Tables[0].Rows[i][1].ToString() + ","
                                                  + ds.Tables[0].Rows[i][2].ToString() + "," + ds.Tables[0].Rows[i][3].ToString() + ","
                                                  + ds.Tables[0].Rows[i][4].ToString() + "," + ds.Tables[0].Rows[i][5].ToString() + ","
                                                  + ds.Tables[0].Rows[i][6].ToString() + "," + ds.Tables[0].Rows[i][7].ToString() + ","
+                                                 + ds.Tables[0].Rows[i][8].ToString() + "," + ds.Tables[0].Rows[i][9].ToString() + ","
+                                                 + ds.Tables[0].Rows[i][10].ToString() + "," + ds.Tables[0].Rows[i][11].ToString()
                                                  + Environment.NewLine);
                     }
 
@@ -252,14 +254,15 @@ namespace PEX_FTP
 
         public static void BankFile(string ConString, string FileName)
         {
-            var CsvFile = FileName;
+            var txtFile = FileName;
             try
             {
                 using (SqlConnection conn = new SqlConnection(ConString))
                 {
                     SqlCommand cmd = new SqlCommand();
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_ConfirmationLog_PEX";
+                    cmd.CommandText = "sp_BankFile_PEX";
+                    cmd.Parameters.Add("@Enviar", SqlDbType.Int).Value = 1;
                     cmd.Connection = conn;
                     conn.Open();
 
@@ -271,18 +274,11 @@ namespace PEX_FTP
                     Console.WriteLine(c);
 
 
-                    File.WriteAllText(CsvFile, ds.Tables[0].Columns[0].ToString() + "," + ds.Tables[0].Columns[1].ToString() + ","
-                                              + ds.Tables[0].Columns[2].ToString() + "," + ds.Tables[0].Columns[3].ToString() + ","
-                                              + ds.Tables[0].Columns[4].ToString() + "," + ds.Tables[0].Columns[5].ToString() + ","
-                                              + ds.Tables[0].Columns[6].ToString() + "," + ds.Tables[0].Columns[7].ToString() + ","
-                                              + Environment.NewLine);
+                    //File.WriteAllText(txtFile, ds.Tables[0].Columns[0].ToString() + Environment.NewLine);
+
                     for (int i = 0; i < c; i++)
                     {
-                        File.AppendAllText(CsvFile, ds.Tables[0].Rows[i][0].ToString() + "," + ds.Tables[0].Rows[i][1].ToString() + ","
-                                                 + ds.Tables[0].Rows[i][2].ToString() + "," + ds.Tables[0].Rows[i][3].ToString() + ","
-                                                 + ds.Tables[0].Rows[i][4].ToString() + "," + ds.Tables[0].Rows[i][5].ToString() + ","
-                                                 + ds.Tables[0].Rows[i][6].ToString() + "," + ds.Tables[0].Rows[i][7].ToString() + ","
-                                                 + Environment.NewLine);
+                        File.AppendAllText(txtFile, ds.Tables[0].Rows[i][0].ToString() + Environment.NewLine);
                     }
 
                     conn.Close();
